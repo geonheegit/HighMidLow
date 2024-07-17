@@ -6,24 +6,41 @@ using UnityEngine.UI;
 public class game_manager : MonoBehaviour
 {
     private bool playMet = false;
-    private double initial_time;
     private int stackedBeatCount;
+    private int stacked4BeatCount;
+    private int stacked8BeatCount;
     private int currentBeatCount;
+    private int current8BeatCount;
+    private int current16BeatCount;
     private int measure;
     [SerializeField] Text stackedBeatCountText;
     [SerializeField] Text currentBeatCountText;
+    [SerializeField] Text current8BeatCountText;
+    [SerializeField] Text current16BeatCountText;
     [SerializeField] Text measureCountText;
     [SerializeField] GameObject metronomePrefab;
     [SerializeField] AudioSource audioSource;
     [SerializeField] float bpm;
-    [SerializeField] float offsetBeats;
     [SerializeField] float offsetSeconds;
+
+
+    public double dspSongTime;
+    public double songPosition;
+    public double secPerBeat;
+    public double initialDsptime;
+
     void Start()
     {
-        initial_time = Time.time;
         stackedBeatCount = 0;
+        stacked4BeatCount = 0;
+        stacked8BeatCount = 0;
         currentBeatCount = 0;
+        current8BeatCount = 0;
+        current16BeatCount = 0;
         measure = 0;
+
+        secPerBeat = 60f / bpm;
+        initialDsptime = 0f;
     }
 
 
@@ -31,10 +48,18 @@ public class game_manager : MonoBehaviour
     {
         if (Input.GetKeyDown(KeyCode.M)){
             playMet = true;
-            audioSource.time = 60 / bpm * offsetBeats + offsetSeconds;
             stackedBeatCount = 0;
+            stacked4BeatCount = 0;
+            stacked8BeatCount = 0;
             currentBeatCount = 0;
+            current8BeatCount = 0;
+            current16BeatCount = 0;
             measure = 0;
+
+            // new logic
+            dspSongTime = (float)AudioSettings.dspTime;
+            initialDsptime = (float)(AudioSettings.dspTime - dspSongTime);
+            
             audioSource.Play();
         }
         else if (Input.GetKeyDown(KeyCode.N)){
@@ -44,22 +69,45 @@ public class game_manager : MonoBehaviour
         }
 
         if (playMet){
-            if (Time.time - initial_time > 60 / bpm){
-                initial_time = Time.time;
-                Instantiate(metronomePrefab);
+            if (songPosition >= secPerBeat * stackedBeatCount / 4 + initialDsptime){ // 1/16 박자
+
                 stackedBeatCount ++;
-                currentBeatCount ++;
+                current16BeatCount ++;
+
             }
+            if (songPosition >= secPerBeat * stacked8BeatCount / 2 + initialDsptime){ // 1/8 박자
+                stacked8BeatCount ++;
+                current8BeatCount ++;
+                
+            }
+            if (songPosition >= secPerBeat * stacked4BeatCount + initialDsptime){ // 1/4 박자
+                stacked4BeatCount ++;
+                currentBeatCount ++;
+
+                Instantiate(metronomePrefab);
+                
+            } 
+
+            songPosition = (float)(AudioSettings.dspTime - dspSongTime - offsetSeconds);
         }
 
         if(currentBeatCount == 5){
             currentBeatCount = 1;
             measure ++;
         }
+        if (current8BeatCount == 9){
+            current8BeatCount = 1;
+        }
+        if (current16BeatCount == 17){
+            current16BeatCount = 1;
+        }
 
+        
 
         stackedBeatCountText.text = "Total Beat: " + stackedBeatCount;
-        currentBeatCountText.text = "Current Beat: " + currentBeatCount;
+        currentBeatCountText.text = "Current Beat (1/4) : " + currentBeatCount;
+        current8BeatCountText.text = "Current Beat (1/8) : " + current8BeatCount;
+        current16BeatCountText.text = "Current Beat (1/16) : " + current16BeatCount;
         measureCountText.text = "Measures: " + measure;
     }
 }
