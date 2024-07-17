@@ -5,14 +5,17 @@ using UnityEngine.UI;
 
 public class game_manager : MonoBehaviour
 {
-    private bool playMet = false;
+    public bool playMet = false; // note_dropper.cs
     private int stackedBeatCount;
     private int stacked4BeatCount;
     private int stacked8BeatCount;
     private int currentBeatCount;
     private int current8BeatCount;
-    private int current16BeatCount;
-    private int measure;
+    public int current16BeatCount; // note_dropper.cs
+    public int measure; // note_dropper.cs
+
+    private note_dropper note_dropper;
+
     [SerializeField] Text stackedBeatCountText;
     [SerializeField] Text currentBeatCountText;
     [SerializeField] Text current8BeatCountText;
@@ -31,6 +34,8 @@ public class game_manager : MonoBehaviour
 
     void Start()
     {
+        note_dropper = gameObject.GetComponent<note_dropper>();
+
         stackedBeatCount = 0;
         stacked4BeatCount = 0;
         stacked8BeatCount = 0;
@@ -61,6 +66,8 @@ public class game_manager : MonoBehaviour
             initialDsptime = (float)(AudioSettings.dspTime - dspSongTime);
             
             audioSource.Play();
+
+            StartCoroutine(note_dropper.DropNotes());
         }
         else if (Input.GetKeyDown(KeyCode.N)){
             playMet = false;
