@@ -6,7 +6,7 @@ public class note_dropper : MonoBehaviour
 {
     public TextAsset TXTFile; //텍스트파일 가져오기
     public int start_measure;
-    public int start_beat; // 1/16 note
+    public int start_beat; // 1/32 note
     private game_manager gm;
     private GameObject notesBox;
 
@@ -19,6 +19,8 @@ public class note_dropper : MonoBehaviour
     [SerializeField] GameObject lowNote;
     [SerializeField] GameObject judgeLine;
     [SerializeField] GameObject dropLine;
+    [SerializeField] GameObject divideBarPrefab;
+    [SerializeField] GameObject divideBar_dropPos_Obj;
     public float scroll_speed;
 
     public IEnumerator DropNotes()
@@ -50,7 +52,7 @@ public class note_dropper : MonoBehaviour
             else{
                 if (line[0] != 'J'){
                     // 2번째 줄부터
-                    // Format: [Line#, NoteCategory(H/M/L), Measure, Beat(1/16)]
+                    // Format: [Line#, NoteCategory(H/M/L), Measure, Beat(1/32)]
                     string[] words = line.Split(" ");
 
                     int lineNum = System.Convert.ToInt32(words[0]);
@@ -65,8 +67,9 @@ public class note_dropper : MonoBehaviour
                     // dropline to judgeline estimated time = distance / speed
                     // unit/beat = unit/sec * sec/beat: speed * gm.secPerBeat -> 1/4박자마다 이동하는 거리
                     // speed * gm.secPerBeat / 4 -> 1/16박자마다 이동하는 거리
-                    // beatDiff * speed * gm.secPerBeat / 4 -> beatDiff만큼 이동하는 거리
-                    // start_measure * 16 + start_beat동안 이동하는 거리: (start_measure * 16 + start_beat) * speed * gm.secPerBeat / 4
+                    // speed * gm.secPerBeat / 8 -> 1/32박자마다 이동하는 거리
+                    // beatDiff * speed * gm.secPerBeat / 8 -> beatDiff만큼 이동하는 거리
+                    // start_measure * 32 + start_beat동안 이동하는 거리: (start_measure * 32 + start_beat) * speed * gm.secPerBeat / 8
                     // + 상수 조절
 
                     // TODO: 1/32 박자 인식
@@ -75,20 +78,22 @@ public class note_dropper : MonoBehaviour
                     float speed = scroll_speed / 100 * 50;
                     float estimatedTime = distance / speed;
 
-                    float beatDiff = (measure * 16 + beat) - (start_measure * 16 + start_beat); // time | 
-                    float adjusted_yPos = (beatDiff * speed * (float)gm.secPerBeat / 4) + ((start_measure * 16 + start_beat) * speed * (float)gm.secPerBeat / 4) - 10;
+                    float beatDiff = (measure * 32 + beat) - (start_measure * 32 + start_beat); // time | 
+                    float adjusted_yPos = (beatDiff * speed * (float)gm.secPerBeat / 8) + ((start_measure * 32 + start_beat) * speed * (float)gm.secPerBeat / 8) - 10;
                     Debug.Log(adjusted_yPos);
 
                     Vector3 adjusted_dropPos1 = new Vector3(dropPos1.transform.position.x, dropPos1.transform.position.y + adjusted_yPos, 0);
                     Vector3 adjusted_dropPos2 = new Vector3(dropPos2.transform.position.x, dropPos2.transform.position.y + adjusted_yPos, 0);
                     Vector3 adjusted_dropPos3 = new Vector3(dropPos3.transform.position.x, dropPos3.transform.position.y + adjusted_yPos, 0);
                     Vector3 adjusted_dropPos4 = new Vector3(dropPos4.transform.position.x, dropPos4.transform.position.y + adjusted_yPos, 0);
-
-                    // Debug.Log(words[0]);
-                    // Debug.Log(words[2]);
-                    // Debug.Log(words[3]);
+                    Vector3 divideBar_dropPos = new Vector3(divideBar_dropPos_Obj.transform.position.x, divideBar_dropPos_Obj.transform.position.y + adjusted_yPos, 0);
 
                     if (gm.playMet){
+                        if (beat == 1){
+                            GameObject divideBar = Instantiate(divideBarPrefab);
+                            divideBar.transform.position = divideBar_dropPos;
+                        }
+
                         if (noteCate == "H"){
                             GameObject note = Instantiate(highNote, notesBox.transform);
 

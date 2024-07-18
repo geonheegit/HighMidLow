@@ -9,9 +9,11 @@ public class game_manager : MonoBehaviour
     private int stackedBeatCount;
     private int stacked4BeatCount;
     private int stacked8BeatCount;
+    private int stacked16BeatCount;
     private int currentBeatCount;
     private int current8BeatCount;
     public int current16BeatCount; // note_dropper.cs
+    public int current32BeatCount; // note_dropper.cs
     public int measure; // note_dropper.cs
 
     private note_dropper note_dropper;
@@ -20,6 +22,7 @@ public class game_manager : MonoBehaviour
     [SerializeField] Text currentBeatCountText;
     [SerializeField] Text current8BeatCountText;
     [SerializeField] Text current16BeatCountText;
+    [SerializeField] Text current32BeatCountText;
     [SerializeField] Text measureCountText;
     [SerializeField] GameObject metronomePrefab;
     [SerializeField] AudioSource audioSource;
@@ -39,9 +42,11 @@ public class game_manager : MonoBehaviour
         stackedBeatCount = 0;
         stacked4BeatCount = 0;
         stacked8BeatCount = 0;
+        stacked16BeatCount = 0;
         currentBeatCount = 0;
         current8BeatCount = 0;
         current16BeatCount = 0;
+        current32BeatCount = 0;
         measure = 0;
 
         secPerBeat = 60f / bpm;
@@ -51,14 +56,23 @@ public class game_manager : MonoBehaviour
 
     void Update()
     {
+        if (Input.GetKeyDown(KeyCode.O)){
+            Debug.Log("a: " + measure + " " + current32BeatCount);
+        }
+        if (Input.GetKeyDown(KeyCode.W)){
+            Debug.Log("a: " + measure + " " + current32BeatCount);
+        }
+
         if (Input.GetKeyDown(KeyCode.M)){
             playMet = true;
             stackedBeatCount = 0;
             stacked4BeatCount = 0;
             stacked8BeatCount = 0;
+            stacked16BeatCount = 0;
             currentBeatCount = 0;
             current8BeatCount = 0;
             current16BeatCount = 0;
+            current32BeatCount = 0;
             measure = 0;
 
             // new logic
@@ -76,9 +90,14 @@ public class game_manager : MonoBehaviour
         }
 
         if (playMet){
-            if (songPosition >= secPerBeat * stackedBeatCount / 4 + initialDsptime){ // 1/16 박자
+            if (songPosition >= secPerBeat * stackedBeatCount / 8 + initialDsptime){ // 1/32 박자
 
                 stackedBeatCount ++;
+                current32BeatCount ++;
+
+            }
+            if (songPosition >= secPerBeat * stacked16BeatCount / 4 + initialDsptime){ // 1/16 박자
+                stacked16BeatCount ++;
                 current16BeatCount ++;
 
             }
@@ -108,13 +127,17 @@ public class game_manager : MonoBehaviour
         if (current16BeatCount == 17){
             current16BeatCount = 1;
         }
+        if (current32BeatCount == 33){
+            current32BeatCount = 1;
+        }
 
         
 
-        stackedBeatCountText.text = "Total Beat: " + stackedBeatCount;
+        stackedBeatCountText.text = "Total Beat (1/32): " + stackedBeatCount;
         currentBeatCountText.text = "Current Beat (1/4) : " + currentBeatCount;
         current8BeatCountText.text = "Current Beat (1/8) : " + current8BeatCount;
         current16BeatCountText.text = "Current Beat (1/16) : " + current16BeatCount;
+        current32BeatCountText.text = "Current Beat (1/32) : " + current32BeatCount;
         measureCountText.text = "Measures: " + measure;
     }
 }
